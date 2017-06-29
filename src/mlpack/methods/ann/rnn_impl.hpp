@@ -30,16 +30,17 @@ namespace ann /** Artificial Neural Network. */ {
 
 template<typename OutputLayerType, typename InitializationRuleType>
 RNN<OutputLayerType, InitializationRuleType>::RNN(
-    const size_t rho,
+    const size_t inputSize,
+    const size_t targetSize,
     const bool single,
     OutputLayerType outputLayer,
     InitializationRuleType initializeRule) :
-    rho(rho),
+    rho(0),
     outputLayer(std::move(outputLayer)),
     initializeRule(std::move(initializeRule)),
-    inputSize(0),
+    inputSize(inputSize),
     outputSize(0),
-    targetSize(0),
+    targetSize(targetSize),
     reset(false),
     single(single)
 {
@@ -48,18 +49,19 @@ RNN<OutputLayerType, InitializationRuleType>::RNN(
 
 template<typename OutputLayerType, typename InitializationRuleType>
 RNN<OutputLayerType, InitializationRuleType>::RNN(
-    arma::mat predictors,
-    arma::mat responses,
-    const size_t rho,
+    arma::field<arma::mat> predictors,
+    arma::field<arma::mat> responses,
+    const size_t inputSize,
+    const size_t targetSize,
     const bool single,
     OutputLayerType outputLayer,
     InitializationRuleType initializeRule) :
     rho(rho),
     outputLayer(std::move(outputLayer)),
     initializeRule(std::move(initializeRule)),
-    inputSize(0),
+    inputSize(inputSize),
     outputSize(0),
-    targetSize(0),
+    targetSize(targetSize),
     reset(false),
     single(single),
     predictors(std::move(predictors)),
@@ -82,8 +84,8 @@ RNN<OutputLayerType, InitializationRuleType>::~RNN()
 template<typename OutputLayerType, typename InitializationRuleType>
 template<typename OptimizerType>
 void RNN<OutputLayerType, InitializationRuleType>::Train(
-    arma::mat predictors,
-    arma::mat responses,
+    arma::field<arma::mat> predictors,
+    arma::field<arma::mat> responses,
     OptimizerType& optimizer)
 {
   numFunctions = responses.n_cols;
@@ -121,7 +123,7 @@ void RNN<OutputLayerType, InitializationRuleType>::ResetCells()
 template<typename OutputLayerType, typename InitializationRuleType>
 template<typename OptimizerType>
 void RNN<OutputLayerType, InitializationRuleType>::Train(
-    arma::mat predictors, arma::mat responses)
+    arma::field<arma::mat> predictors, arma::field<arma::mat> responses)
 {
   numFunctions = responses.n_cols;
 
@@ -209,15 +211,15 @@ double RNN<OutputLayerType, InitializationRuleType>::Evaluate(
     ResetDeterministic();
   }
 
-  arma::mat input = arma::mat(predictors.colptr(i), predictors.n_rows,
-      1, false, true);
-  arma::mat target = arma::mat(responses.colptr(i), responses.n_rows,
-      1, false, true);
+  arma::mat& input = predictors.at(0, i);
+  arma::mat& target = responses.at(0, i);
 
-  if (!inputSize)
+  rho = input.n_elem / inputSize;
+
+  if(input.n_elem / inputSize != target.n_elem / targetSize)
   {
-    inputSize = input.n_elem / rho;
-    targetSize = target.n_elem / rho;
+    //! TODO: decide how to handle this error
+    // Throw error
   }
 
   ResetCells();
@@ -279,10 +281,8 @@ void RNN<OutputLayerType, InitializationRuleType>::Gradient(
       parameter.n_cols);
   ResetGradients(currentGradient);
 
-  arma::mat input = arma::mat(predictors.colptr(i), predictors.n_rows,
-      1, false, true);
-  arma::mat target = arma::mat(responses.colptr(i), responses.n_rows,
-      1, false, true);
+  arma::mat& input = predictors.at(0, i);
+  arma::mat& target = responses.at(0, i);
 
   for (size_t seqNum = 0; seqNum < rho; ++seqNum)
   {

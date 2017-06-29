@@ -53,13 +53,15 @@ class RNN
    * If you want to pass in a parameter and discard the original parameter
    * object, be sure to use std::move to avoid unnecessary copy.
    *
-   * @param rho Maximum number of steps to backpropagate through time (BPTT).
+   * @param inputSize Size of input block in all sequences
+   * @param targetSize Size of the label block in all sequences
    * @param single Predict only the last element of the input sequence.
    * @param outputLayer Output layer used to evaluate the network.
    * @param initializeRule Optional instantiated InitializationRule object
    *        for initializing the network parameter.
    */
-  RNN(const size_t rho,
+  RNN(const size_t inputSize,
+      const size_t targetSize,
       const bool single = false,
       OutputLayerType outputLayer = OutputLayerType(),
       InitializationRuleType initializeRule = InitializationRuleType());
@@ -75,15 +77,17 @@ class RNN
    *
    * @param predictors Input training variables.
    * @param responses Outputs results from input training variables.
-   * @param rho Maximum number of steps to backpropagate through time (BPTT).
+   * @param inputSize Size of input block in all sequences
+   * @param targetSize Size of the label block in all sequences
    * @param single Predict only the last element of the input sequence.
    * @param outputLayer Output layer used to evaluate the network.
    * @param initializeRule Optional instantiated InitializationRule object
    *        for initializing the network parameter.
    */
-  RNN(arma::mat predictors,
-      arma::mat responses,
-      const size_t rho,
+  RNN(arma::field<arma::mat> predictors,
+      arma::field<arma::mat> responses,
+      const size_t inputSize,
+      const size_t targetSize,
       const bool single = false,
       OutputLayerType outputLayer = OutputLayerType(),
       InitializationRuleType initializeRule = InitializationRuleType());
@@ -108,8 +112,8 @@ class RNN
    * @param optimizer Instantiated optimizer used to train the model.
    */
   template<typename OptimizerType>
-  void Train(arma::mat predictors,
-             arma::mat responses,
+  void Train(arma::field<arma::mat> predictors,
+             arma::field<arma::mat> responses,
              OptimizerType& optimizer);
 
   /**
@@ -129,7 +133,7 @@ class RNN
    * @param responses Outputs results from input training variables.
    */
   template<typename OptimizerType = mlpack::optimization::StandardSGD>
-  void Train(arma::mat predictors, arma::mat responses);
+  void Train(arma::field<arma::mat> predictors, arma::field<arma::mat> responses);
 
   /**
    * Predict the responses to a given set of predictors. The responses will
@@ -288,10 +292,10 @@ class RNN
   std::vector<LayerTypes> network;
 
   //! The matrix of data points (predictors).
-  arma::mat predictors;
+  arma::field<arma::mat> predictors;
 
   //! The matrix of responses to the input data points.
-  arma::mat responses;
+  arma::field<arma::mat> responses;
 
   //! Matrix of (trained) parameters.
   arma::mat parameter;

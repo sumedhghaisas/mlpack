@@ -745,14 +745,19 @@ BOOST_AUTO_TEST_CASE(GradientLSTMLayerTest)
   {
     GradientFunction()
     {
-      input = arma::randu(5, 1);
-      target = arma::mat("1; 1; 1; 1; 1");
-      const size_t rho = 5;
+      input = arma::field<arma::mat>(1, 1);
+      target = arma::field<arma::mat>(1, 1);
 
-      model = new RNN<NegativeLogLikelihood<> >(input, target, rho);
+      input.at(0, 0) = arma::randu(5, 1);
+      target.at(0, 0) = arma::mat("1; 1; 1; 1; 1");
+
+      const size_t inputSize = 5;
+      const size_t targetSize = 1;
+
+      model = new RNN<NegativeLogLikelihood<> >(input, target, inputSize, targetSize);
       model->Add<IdentityLayer<> >();
       model->Add<Linear<> >(1, 10);
-      model->Add<LSTM<> >(10, 3, rho);
+      model->Add<LSTM<> >(10, 3, 100);
       model->Add<LogSoftMax<> >();
     }
 
@@ -772,7 +777,7 @@ BOOST_AUTO_TEST_CASE(GradientLSTMLayerTest)
     arma::mat& Parameters() { return model->Parameters(); }
 
     RNN<NegativeLogLikelihood<> >* model;
-    arma::mat input, target;
+    arma::field<arma::mat> input, target;
   } function;
 
   BOOST_REQUIRE_LE(CheckGradient(function), 1e-4);

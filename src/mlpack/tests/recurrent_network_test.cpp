@@ -61,98 +61,6 @@ void GenerateNoisySines(arma::mat& data,
 }
 
 /**
- * Train the vanilla network on a larger dataset.
- */
-BOOST_AUTO_TEST_CASE(SequenceClassificationTest)
-{
-  // It isn't guaranteed that the recurrent network will converge in the
-  // specified number of iterations using random weights. If this works 1 of 5
-  // times, I'm fine with that. All I want to know is that the network is able
-  // to escape from local minima and to solve the task.
-  size_t successes = 0;
-  const size_t rho = 10;
-
-  for (size_t trial = 0; trial < 5; ++trial)
-  {
-    // Generate 12 (2 * 6) noisy sines. A single sine contains rho
-    // points/features.
-    arma::mat input, labelsTemp;
-    GenerateNoisySines(input, labelsTemp, rho, 6);
-
-    arma::mat labels = arma::zeros<arma::mat>(rho, labelsTemp.n_cols);
-    for (size_t i = 0; i < labelsTemp.n_cols; ++i)
-    {
-      const int value = arma::as_scalar(arma::find(
-          arma::max(labelsTemp.col(i)) == labelsTemp.col(i), 1)) + 1;
-      labels.col(i).fill(value);
-    }
-
-    /**
-     * Construct a network with 1 input unit, 4 hidden units and 10 output
-     * units. The hidden layer is connected to itself. The network structure
-     * looks like:
-     *
-     *  Input         Hidden        Output
-     * Layer(1)      Layer(4)      Layer(10)
-     * +-----+       +-----+       +-----+
-     * |     |       |     |       |     |
-     * |     +------>|     +------>|     |
-     * |     |    ..>|     |       |     |
-     * +-----+    .  +--+--+       +-----+
-     *            .     .
-     *            .     .
-     *            .......
-     */
-    Add<> add(4);
-    Linear<> lookup(1, 4);
-    SigmoidLayer<> sigmoidLayer;
-    Linear<> linear(4, 4);
-    Recurrent<> recurrent(add, lookup, linear, sigmoidLayer, rho);
-
-    RNN<> model(rho);
-    model.Add<IdentityLayer<> >();
-    model.Add(recurrent);
-    model.Add<Linear<> >(4, 10);
-    model.Add<LogSoftMax<> >();
-
-    StandardSGD opt(0.1, 500 * input.n_cols, -100);
-    model.Train(input, labels, opt);
-
-    arma::mat prediction;
-    model.Predict(input, prediction);
-
-    size_t error = 0;
-    for (size_t i = 0; i < prediction.n_cols; ++i)
-    {
-      arma::mat singlePrediction = prediction.submat((rho - 1) * rho, i,
-          rho * rho - 1, i);
-
-      const int predictionValue = arma::as_scalar(arma::find(
-          arma::max(singlePrediction.col(0)) ==
-          singlePrediction.col(0), 1) + 1);
-
-      const int targetValue = arma::as_scalar(arma::find(
-          arma::max(labelsTemp.col(i)) == labelsTemp.col(i), 1)) + 1;
-
-      if (predictionValue == targetValue)
-      {
-        error++;
-      }
-    }
-
-    double classificationError = 1 - double(error) / prediction.n_cols;
-
-    if (classificationError <= 0.2)
-    {
-      ++successes;
-      break;
-    }
-  }
-
-  BOOST_REQUIRE_GE(successes, 1);
-}
-
-/**
  * Generate a random Reber grammar.
  *
  * For more information, see the following thesis.
@@ -369,7 +277,7 @@ void ReberGrammarTestNetwork(bool embedded = false)
     const size_t outputSize = 7;
     const size_t inputSize = 7;
 
-    RNN<MeanSquaredError<> > model(5);
+    RNN<MeanSquaredError<> > model(inputSize, outputSize);
 
     model.Add<Linear<> >(inputSize, 14);
     model.Add<RecurrentLayerType>(14, 7, 10000);
@@ -378,17 +286,7 @@ void ReberGrammarTestNetwork(bool embedded = false)
 
     StandardSGD opt(0.1, 2, -50000);
 
-    arma::mat inputTemp, labelsTemp;
-    for (size_t i = 0; i < (10 + offset); i++)
-    {
-      for (size_t j = 0; j < trainReberGrammarCount; j++)
-      {
-        inputTemp = trainInput.at(0, j);
-        labelsTemp = trainLabels.at(0, j);
-        model.Rho() = inputTemp.n_elem / inputSize;
-        model.Train(inputTemp, labelsTemp, opt);
-      }
-    }
+    model.Train(trainInput, trainLabels);
 
     double error = 0;
 
@@ -581,7 +479,7 @@ void DistractedSequenceRecallTestNetwork()
   size_t offset = 0;
   for (size_t trial = 0; trial < 5; ++trial)
   {
-    RNN<MeanSquaredError<> > model(rho);
+    RNN<MeanSquaredError<> > model(inputSize, outputSize);
     model.Add<IdentityLayer<> >();
     model.Add<Linear<> >(inputSize, 16);
     model.Add<RecurrentLayerType>(14, 7, rho);
@@ -590,17 +488,7 @@ void DistractedSequenceRecallTestNetwork()
 
     StandardSGD opt(0.1, 2, -50000);
 
-    arma::mat inputTemp, labelsTemp;
-    for (size_t i = 0; i < (10 + offset); i++)
-    {
-      for (size_t j = 0; j < trainDistractedSequenceCount; j++)
-      {
-        inputTemp = trainInput.at(0, j);
-        labelsTemp = trainLabels.at(0, j);
-
-        model.Train(inputTemp, labelsTemp, opt);
-      }
-    }
+    model.Train(trainInput, trainLabels);
 
     double error = 0;
 
