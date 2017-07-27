@@ -33,6 +33,7 @@
 #include <mlpack/methods/ann/layer/parametric_relu.hpp>
 #include <mlpack/methods/ann/layer/reinforce_normal.hpp>
 #include <mlpack/methods/ann/layer/select.hpp>
+#include <mlpack/methods/ann/layer/read_memory.hpp>
 
 // Convolution modules.
 #include <mlpack/methods/ann/convolution_rules/border_modes.hpp>
@@ -117,6 +118,7 @@ using LayerTypes = boost::variant<
     NegativeLogLikelihood<arma::mat, arma::mat>*,
     NeuralTuringMachine<arma::mat, arma::mat>*,
     PReLU<arma::mat, arma::mat>*,
+    ReadMemory<arma::mat, arma::mat>*,
     Recurrent<arma::mat, arma::mat>*,
     RecurrentAttention<arma::mat, arma::mat>*,
     ReinforceNormal<arma::mat, arma::mat>*,
