@@ -56,6 +56,7 @@ template<typename InputDataType, typename OutputDataType> class Sequential;
 template<typename InputDataType, typename OutputDataType> class VRClassReward;
 template<typename InputDataType, typename OutputDataType> class MemoryHead;
 template<typename InputDataType, typename OutputDataType> class MemoryTest;
+template<typename InputDataType, typename OutputDataType> class WriteMemory;
 template<typename InputDataType, typename OutputDataType>
     class NeuralTuringMachine;
 
@@ -124,7 +125,8 @@ using LayerTypes = boost::variant<
     ReinforceNormal<arma::mat, arma::mat>*,
     Select<arma::mat, arma::mat>*,
     Sequential<arma::mat, arma::mat>*,
-    VRClassReward<arma::mat, arma::mat>*
+    VRClassReward<arma::mat, arma::mat>*,
+    WriteMemory<arma::mat, arma::mat>*
 >;
 
 } // namespace ann
