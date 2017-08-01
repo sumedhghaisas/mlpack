@@ -202,8 +202,6 @@ class RNN
   //! Modify the initial point for the optimization.
   arma::mat& Parameters() { return parameter; }
 
-  size_t& Rho() { return rho; }
-
   //! Serialize the model.
   template<typename Archive>
   void Serialize(Archive& ar, const unsigned int /* version */);
