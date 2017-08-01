@@ -11,6 +11,7 @@ add_executable(mlpack_test
   armadillo_svd_test.cpp
   arma_extend_test.cpp
   aug_lagrangian_test.cpp
+  augmented_rnns_tasks_test.cpp
   binarize_test.cpp
   block_krylov_svd_test.cpp
   cf_test.cpp
@@ -28,7 +29,9 @@ add_executable(mlpack_test
   emst_test.cpp
   fastmks_test.cpp
   feedforward_network_test.cpp
+  frankwolfe_test.cpp
   gmm_test.cpp
+  gradient_clipping_test.cpp
   gradient_descent_test.cpp
   hmm_test.cpp
   hoeffding_tree_test.cpp
@@ -67,6 +70,7 @@ add_executable(mlpack_test
   nmf_test.cpp
   nystroem_method_test.cpp
   octree_test.cpp
+  parallel_sgd_test.cpp
   pca_test.cpp
   perceptron_test.cpp
   prefixedoutstream_test.cpp
@@ -75,6 +79,7 @@ add_executable(mlpack_test
   quic_svd_test.cpp
   radical_test.cpp
   random_forest_test.cpp
+  random_test.cpp
   randomized_svd_test.cpp
   range_search_test.cpp
   rectangle_tree_test.cpp
