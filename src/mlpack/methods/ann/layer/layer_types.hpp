@@ -34,6 +34,9 @@
 #include <mlpack/methods/ann/layer/reinforce_normal.hpp>
 #include <mlpack/methods/ann/layer/select.hpp>
 
+// Initializations.
+#include <mlpack/methods/ann/init_rules/random_init.hpp>
+
 // Convolution modules.
 #include <mlpack/methods/ann/convolution_rules/border_modes.hpp>
 #include <mlpack/methods/ann/convolution_rules/naive_convolution.hpp>
@@ -59,6 +62,12 @@ template<typename InputDataType, typename OutputDataType> class WriteMemory;
 template<typename InputDataType, typename OutputDataType> class ReadMemory;
 template<typename InputDataType, typename OutputDataType>
 class NeuralTuringMachine;
+
+template<
+  typename OutputLayerType,
+  typename InitializationRuleType
+>
+class FFN;
 
 template<
     typename OutputLayerType,
@@ -100,6 +109,7 @@ using LayerTypes = boost::variant<
     DropConnect<arma::mat, arma::mat>*,
     Dropout<arma::mat, arma::mat>*,
     ELU<arma::mat, arma::mat>*,
+    FFN<NegativeLogLikelihood<>, RandomInitialization>*,
     Glimpse<arma::mat, arma::mat>*,
     HardTanH<arma::mat, arma::mat>*,
     Join<arma::mat, arma::mat>*,
